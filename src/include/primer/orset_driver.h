@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #pragma once
-
+#include <cstdint>
 #include <memory>
 #include <vector>
 #include "primer/orset.h"
