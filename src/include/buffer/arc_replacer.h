@@ -1,4 +1,3 @@
-
 //===----------------------------------------------------------------------===//
 //
 //                         BusTub
@@ -61,7 +60,7 @@ class ArcReplacer {
   auto Size() -> size_t;
 
  private:
-  // TODO(student): implement me! You can replace or remove these member variables as you like.
+  // Front of each list = most recently used, back = least recently used.
   std::list<frame_id_t> mru_;
   std::list<frame_id_t> mfu_;
   std::list<page_id_t> mru_ghost_;
@@ -76,15 +75,23 @@ class ArcReplacer {
    * identifier in ghost lists */
   std::unordered_map<page_id_t, std::shared_ptr<FrameStatus>> ghost_map_;
 
+  /* iterators into the lists above, so every operation is O(1) */
+  std::unordered_map<frame_id_t, std::list<frame_id_t>::iterator> alive_iter_;
+  std::unordered_map<page_id_t, std::list<page_id_t>::iterator> ghost_iter_;
+
   /* alive, evictable entries count */
-  [[maybe_unused]] size_t curr_size_{0};
+  size_t curr_size_{0};
   /* p as in original paper */
-  [[maybe_unused]] size_t mru_target_size_{0};
+  size_t mru_target_size_{0};
   /* c as in original paper */
-  [[maybe_unused]] size_t replacer_size_;
+  size_t replacer_size_;
   std::mutex latch_;
 
-  // TODO(student): You can add member variables / functions as you like.
+  /* Try to evict the least recently used evictable frame in `lst` into the matching ghost list.
+   * Caller must hold latch_. */
+  auto EvictFrom(bool from_mru) -> std::optional<frame_id_t>;
+  /* Drop the oldest entry of a ghost list entirely. Caller must hold latch_. */
+  void DropGhostTail(bool from_mru_ghost);
 };
 
 }  // namespace bustub

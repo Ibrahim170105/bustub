@@ -88,6 +88,9 @@ class FrameHeader {
    */
   std::vector<char> data_;
 
+  /** @brief The ID of the page currently stored in this frame (INVALID_PAGE_ID if none). Protected by the BPM latch. */
+  page_id_t page_id_{INVALID_PAGE_ID};
+
   /**
    * TODO(P1): You may add any fields or helper functions under here that you think are necessary.
    *
@@ -161,6 +164,18 @@ class BufferPoolManager {
    * Note: Please ignore this for P1.
    */
   LogManager *log_manager_ __attribute__((__unused__));
+
+  /** @brief Synchronously reads/writes a page through the disk scheduler. */
+  void DiskIO(bool is_write, page_id_t page_id, char *data);
+
+  /** @brief Writes the frame's page to disk if dirty and clears the dirty flag. Caller holds the BPM latch. */
+  void FlushFrame(const std::shared_ptr<FrameHeader> &frame);
+
+  /** @brief Returns a free (empty) frame, evicting a victim if needed. Caller holds the BPM latch. */
+  auto AcquireFrame() -> std::optional<frame_id_t>;
+
+  /** @brief Brings the page into memory (if needed), pins it, and updates the replacer. Caller holds the BPM latch. */
+  auto PinPage(page_id_t page_id, AccessType access_type) -> std::shared_ptr<FrameHeader>;
 
   /**
    * TODO(P1): You may add additional private members and helper functions if you find them necessary.
